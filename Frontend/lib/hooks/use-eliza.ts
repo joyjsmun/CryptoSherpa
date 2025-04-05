@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Message = {
   text: string;
@@ -15,6 +15,15 @@ export function useEliza() {
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  // Initialize session on component mount
+  useEffect(() => {
+    // Create a unique session ID or retrieve from storage
+    const newSessionId = localStorage.getItem('elizaSessionId') || `session-${Date.now()}`;
+    localStorage.setItem('elizaSessionId', newSessionId);
+    setSessionId(newSessionId);
+  }, []);
 
   const sendMessage = async (text: string) => {
     // Add user message
@@ -22,32 +31,61 @@ export function useEliza() {
     setIsLoading(true);
 
     try {
-      // In a real implementation, we would call the backend API here
-      // const response = await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ message: text }) });
-      // const data = await response.json();
+      if (!sessionId) {
+        throw new Error("Session not initialized");
+      }
       
-      // Temporary responses (until we connect to the backend)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Connect to the Eliza backend using the correct endpoint for client-direct
+      console.log(`Attempting to connect to: http://localhost:3000/41380eba-0816-0e63-a91a-6d27f39cf120/message`);
+      const response = await fetch('http://localhost:3000/41380eba-0816-0e63-a91a-6d27f39cf120/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: text,
+          userId: sessionId,
+          roomId: `room-${sessionId}`,
+          userName: "User",
+        }),
+      });
       
-      const responses = [
-        "Thank you for your interest in cryptocurrency. Do you have any specific questions?",
-        "Welcome to the world of cryptocurrency! What would you like to know more about?",
-        "Blockchain technology is revolutionizing the financial world. Would you like to learn about a specific cryptocurrency?",
-        "It's important to approach cryptocurrency investment carefully. Do you need more detailed information?",
-        "Do you need help setting up a cryptocurrency wallet?",
-      ];
+      console.log(`Response status: ${response.status}`);
       
-      const randomIndex = Math.floor(Math.random() * responses.length);
+      if (!response.ok) {
+        console.error(`Server error: ${response.status} ${response.statusText}`);
+        throw new Error(`Server responded with ${response.status}`);
+      }
       
-      setMessages((prev) => [
-        ...prev,
-        { text: responses[randomIndex], sender: "assistant" },
-      ]);
+      const data = await response.json();
+      console.log("Response data:", data);
+      
+      // Add the bot response to messages - the response is an array of content objects
+      if (data && Array.isArray(data) && data.length > 0 && data[0].text) {
+        console.log(`Adding assistant message: ${data[0].text}`);
+        setMessages((prev) => [
+          ...prev,
+          { text: data[0].text, sender: "assistant" },
+        ]);
+      } else {
+        console.error("Invalid response format:", data);
+        throw new Error("Invalid response format from server");
+      }
     } catch (error) {
       console.error("Error sending message:", error);
+      
+      // Fallback to local responses if the server connection fails
+      const fallbackResponses = [
+        "Sorry, I'm having trouble connecting to my knowledge base. Can we try again?",
+        "There seems to be a connection issue. Let's try a different question.",
+        "I'm experiencing some technical difficulties. Please try again in a moment.",
+      ];
+      
+      const randomIndex = Math.floor(Math.random() * fallbackResponses.length);
+      
       setMessages((prev) => [
         ...prev,
-        { text: "Sorry, an error occurred. Please try again later.", sender: "assistant" },
+        { text: fallbackResponses[randomIndex], sender: "assistant" },
       ]);
     } finally {
       setIsLoading(false);
