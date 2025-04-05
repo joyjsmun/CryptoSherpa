@@ -18,6 +18,8 @@ import {
   Database,
   ExternalLink,
   Camera,
+  X,
+  Mic,
 } from "lucide-react"
 import Image from "next/image"
 
@@ -178,6 +180,7 @@ export function OnboardingContent({ activeStep, setActiveStep }: OnboardingConte
   const currentStep = steps[activeStep]
   const currentSubSteps = currentStep.subSteps
   const currentSubStep = currentSubSteps[activeSubStep]
+  const CurrentIcon = currentStep.icon
 
   const nextSubStep = () => {
     // Mark current sub-step as completed
@@ -254,177 +257,135 @@ export function OnboardingContent({ activeStep, setActiveStep }: OnboardingConte
     window.open("https://cryptosherpa.io", "_blank")
   }
 
-  const CurrentIcon = currentStep.icon
-
   return (
-    <div className="h-full flex flex-col" ref={dragConstraintsRef}>
-      {/* Main Steps Progress - Updated to 5 bars */}
-      <div className="flex space-x-2 mb-6">
+    <div className="text-white" ref={dragConstraintsRef}>
+      <div className="mb-8">
+        <div className="flex items-center mb-3">
+          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center mr-4">
+            <CurrentIcon className="w-5 h-5 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-white">{currentStep.title}</h2>
+        </div>
+        <p className="text-white/80">{currentStep.description}</p>
+      </div>
+
+      {/* Progress Steps */}
+      <div className="flex mb-6 space-x-2 overflow-x-auto pb-2">
         {steps.map((step, index) => (
           <button
             key={step.id}
             onClick={() => selectMainStep(index)}
-            className={`flex-1 h-1.5 rounded-full transition-all ${
-              index === activeStep ? "bg-white" : completedSteps.includes(index) ? "bg-emerald-500" : "bg-white/30"
-            }`}
-            aria-label={`Go to ${step.title}`}
-          />
+            className={`px-4 py-2 rounded-full text-sm whitespace-nowrap transition-all ${
+              activeStep === index
+                ? "bg-white/20 text-white"
+                : "bg-white/10 text-white/70 hover:bg-white/15"
+            } ${completedSteps.includes(index) ? "border border-green-500/50" : ""}`}
+          >
+            {completedSteps.includes(index) && (
+              <CheckCircle2 className="w-4 h-4 inline-block mr-1 text-green-500" />
+            )}
+            Step {index + 1}
+          </button>
         ))}
       </div>
 
-      {/* Current Step Header */}
+      {/* Sub-steps */}
       <div className="mb-6">
-        <div className="flex items-center mb-2">
-          <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center mr-3">
-            <CurrentIcon className="h-5 w-5 text-white" />
-          </div>
-          <h2 className="text-2xl font-bold text-white">{currentStep.title}</h2>
-        </div>
-        <p className="text-white/80 ml-13">{currentStep.description}</p>
-      </div>
-
-      {/* Sub-steps Navigation */}
-      <div className="flex space-x-2 mb-6 overflow-x-auto pb-2">
         {currentSubSteps.map((subStep, index) => (
           <button
             key={index}
             onClick={() => selectSubStep(index)}
-            className={`flex-shrink-0 px-4 py-2 rounded-lg transition-colors text-sm ${
-              index === activeSubStep
-                ? "bg-white/20 text-white"
-                : isSubStepCompleted(activeStep, index)
-                  ? "bg-emerald-500/20 text-white"
-                  : "bg-white/10 text-white/70"
-            }`}
+            className={`block w-full text-left px-4 py-3 mb-2 rounded-lg transition-all ${
+              activeSubStep === index
+                ? "bg-white/20 backdrop-blur-md"
+                : "bg-white/10 hover:bg-white/15"
+            } ${isSubStepCompleted(activeStep, index) ? "border border-green-500/30" : ""}`}
           >
-            {isSubStepCompleted(activeStep, index) && (
-              <CheckCircle2 className="inline-block h-4 w-4 mr-1 text-emerald-500" />
-            )}
-            <span>Step {index + 1}</span>
+            <div className="flex items-center">
+              {isSubStepCompleted(activeStep, index) ? (
+                <CheckCircle2 className="w-5 h-5 mr-2 text-green-500" />
+              ) : (
+                <div
+                  className={`w-5 h-5 rounded-full mr-2 flex items-center justify-center ${
+                    activeSubStep === index ? "bg-white text-black" : "bg-white/30 text-white"
+                  }`}
+                >
+                  {index + 1}
+                </div>
+              )}
+              <span className="font-medium">{subStep.title}</span>
+            </div>
           </button>
         ))}
       </div>
 
-      {/* Current Sub-step Content */}
-      <motion.div
-        key={`${activeStep}-${activeSubStep}`}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="flex-1 bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20 overflow-y-auto"
-      >
-        <h3 className="text-xl font-semibold text-white mb-4">{currentSubStep.title}</h3>
-        <p className="text-white/90 leading-relaxed">{currentSubStep.content}</p>
+      {/* Content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`${activeStep}-${activeSubStep}`}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.3 }}
+          className="bg-white/10 backdrop-blur-md rounded-xl p-6 mb-6"
+        >
+          <h3 className="text-xl font-semibold mb-4">{currentSubStep.title}</h3>
+          <p className="text-white/90 leading-relaxed mb-4">{currentSubStep.content}</p>
 
-        {/* Illustrative Icon - Fixed for mobile */}
-        <div className="mt-8 flex justify-center">
-          {activeStep === 0 && activeSubStep === 0 && (
-            <div className="h-24 w-24 rounded-full bg-white/10 flex items-center justify-center">
-              <BookOpen className="h-12 w-12 text-white/70" />
-            </div>
-          )}
-          {activeStep === 0 && activeSubStep === 1 && (
-            <div className="h-24 w-24 rounded-full bg-white/10 flex items-center justify-center">
-              <FileText className="h-12 w-12 text-white/70" />
-            </div>
-          )}
-          {activeStep === 0 && activeSubStep === 2 && (
-            <div className="flex flex-col items-center">
-              <div className="h-24 w-24 rounded-full bg-white/10 flex items-center justify-center">
-                <FileText className="h-12 w-12 text-white/70" />
-              </div>
-            </div>
-          )}
-          {activeStep === 1 && activeSubStep === 0 && (
-            <div className="flex space-x-4">
-              <div className="h-16 w-16 rounded-lg bg-white/10 flex items-center justify-center">
-                <Lock className="h-8 w-8 text-white/70" />
-              </div>
-              <div className="h-16 w-16 rounded-lg bg-white/10 flex items-center justify-center">
-                <Smartphone className="h-8 w-8 text-white/70" />
-              </div>
-            </div>
-          )}
-          {activeStep === 1 && activeSubStep === 1 && (
-            <div className="h-24 w-24 rounded-full bg-white/10 flex items-center justify-center">
-              <Download className="h-12 w-12 text-white/70" />
-            </div>
-          )}
-          {activeStep === 1 && activeSubStep === 2 && (
-            <div className="h-24 w-24 rounded-full bg-white/10 flex items-center justify-center">
-              <Wallet className="h-12 w-12 text-white/70" />
-            </div>
-          )}
+          {/* Additional content or interactions can go here */}
           {activeStep === 1 && activeSubStep === 3 && (
-            <div className="h-24 w-24 rounded-full bg-white/10 flex items-center justify-center">
-              <Key className="h-12 w-12 text-white/70" />
+            <div className="mt-4 p-4 bg-yellow-500/20 rounded-lg">
+              <div className="flex items-start">
+                <AlertTriangle className="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0 mt-1" />
+                <p className="text-sm text-white/90">
+                  <strong>Important:</strong> Your recovery phrase is the only way to restore your wallet if you lose access.
+                  Write it down and store it securely. Never share it with anyone or store it digitally.
+                </p>
+              </div>
             </div>
           )}
-          {activeStep === 2 && (
-            <div className="h-24 w-24 rounded-full bg-white/10 flex items-center justify-center">
-              <ArrowRight className="h-12 w-12 text-white/70" />
-            </div>
-          )}
-          {activeStep === 3 && (
-            <div className="h-24 w-24 rounded-full bg-white/10 flex items-center justify-center">
-              <Database className="h-12 w-12 text-white/70" />
-            </div>
-          )}
-          {activeStep === 4 && activeSubStep === 0 && (
-            <div className="h-24 w-24 rounded-full bg-white/10 flex items-center justify-center">
-              <Shield className="h-12 w-12 text-white/70" />
-            </div>
-          )}
-          {activeStep === 4 && activeSubStep === 1 && (
-            <div className="h-24 w-24 rounded-full bg-white/10 flex items-center justify-center">
-              <Lock className="h-12 w-12 text-white/70" />
-            </div>
-          )}
-          {activeStep === 4 && activeSubStep === 2 && (
-            <div className="h-24 w-24 rounded-full bg-white/10 flex items-center justify-center">
-              <AlertTriangle className="h-12 w-12 text-white/70" />
-            </div>
-          )}
-        </div>
-      </motion.div>
+        </motion.div>
+      </AnimatePresence>
 
-      {/* Navigation Buttons with new buttons added */}
-      <div className="flex justify-between items-center mt-6">
+      {/* Navigation Buttons */}
+      <div className="flex justify-between">
         <button
           onClick={prevSubStep}
-          disabled={activeStep === 0 && activeSubStep === 0}
-          className="px-4 py-2 flex items-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-full flex items-center hover:bg-white/20 transition-all"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Previous
+          <ArrowLeft className="w-4 h-4 mr-1" /> Previous
         </button>
-
-        <div className="flex space-x-3">
-          {/* CryptoSherpa Guide Button */}
-          <button
-            onClick={openGuide}
-            className="p-2 rounded-full bg-red-500/80 text-white hover:bg-red-600 transition-colors"
-            title="CryptoSherpa Guide"
-          >
-            <ExternalLink className="h-5 w-5" />
-          </button>
-
-          {/* Screenshot Button */}
-          <button
-            onClick={takeScreenshot}
-            className="p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
-            title="Take Screenshot"
-          >
-            <Camera className="h-5 w-5" />
-          </button>
-        </div>
 
         <button
           onClick={nextSubStep}
-          className="px-4 py-2 flex items-center rounded-lg bg-white/20 text-white hover:bg-white/30 transition-colors"
+          className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-full flex items-center hover:bg-white/20 transition-all"
         >
-          {activeStep === steps.length - 1 && activeSubStep === currentSubSteps.length - 1 ? "Complete" : "Next"}
-          <ArrowRight className="h-4 w-4 ml-2" />
+          Next <ArrowRight className="w-4 h-4 ml-1" />
+        </button>
+      </div>
+
+      {/* Action buttons */}
+      <div className="mt-8 flex space-x-3">
+        <button
+          onClick={takeScreenshot}
+          className="p-2 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all"
+          title="Take Screenshot"
+        >
+          <Camera className="w-5 h-5" />
+        </button>
+        <button
+          onClick={toggleVoiceAssistant}
+          className="p-2 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all"
+          title="Voice Assistant"
+        >
+          {isVoiceActive ? <X className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+        </button>
+        <button
+          onClick={openGuide}
+          className="p-2 rounded-full bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all"
+          title="Open Guide"
+        >
+          <ExternalLink className="w-5 h-5" />
         </button>
       </div>
 
