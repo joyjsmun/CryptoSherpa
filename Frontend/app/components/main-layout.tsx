@@ -13,7 +13,18 @@ export function MainLayout() {
     <div className="min-h-screen w-full flex items-center justify-center p-6 md:p-10 relative">
       {/* Full-screen Background Image */}
       <div className="fixed inset-0 -z-10">
-        <Image src="/images/raspberry-bg.jpeg" alt="Raspberry background" fill priority className="object-cover" />
+        <Image 
+          src="/images/raspberry-bg.jpeg" 
+          alt="Raspberry background" 
+          width={1920}
+          height={1080}
+          priority 
+          style={{
+            objectFit: 'cover',
+            width: '100%',
+            height: '100%'
+          }}
+        />
         <div className="absolute inset-0 bg-black/40" />
       </div>
 

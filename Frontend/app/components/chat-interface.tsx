@@ -6,7 +6,7 @@ import { useState, useRef, useEffect } from "react";
 import { Mic, Send, MicOff, Paperclip } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEliza } from "@/hooks/use-eliza";
+import { useEliza } from "@/lib/hooks/use-eliza";
 
 export function ChatInterface() {
   const { messages, isLoading, sendMessage } = useEliza();

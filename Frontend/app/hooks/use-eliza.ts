@@ -17,7 +17,7 @@ export function useEliza() {
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: "assistant",
-      text: "Hello! I'm your crypto assistant. How can I help you today?",
+      text: "Hello! I'm your Bango! crypto assistant. How can I help you today?",
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
